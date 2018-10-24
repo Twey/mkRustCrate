@@ -1,0 +1,3 @@
+[root]
+name = "@crateName@"
+version = "@crateVersion@"
