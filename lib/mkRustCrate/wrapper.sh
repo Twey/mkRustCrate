@@ -1,5 +1,3 @@
 #!@bash@/bin/bash
 
-source @env@
-
-@cmd@ ${depFlags[*]} "$@"
+@cmd@ $(@bash@/bin/bash @env@) "$@"
