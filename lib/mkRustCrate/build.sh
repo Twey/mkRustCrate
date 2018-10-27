@@ -1,3 +1,5 @@
+shopt -s nullglob
+
 source $utils
 
 mkdir cargo_home
@@ -10,7 +12,11 @@ $jq -f $cargoFilter < Cargo.json \
 
 links=$($jq -r .package.links < Cargo.json)
 
-cargo="$cargo --frozen"
+function run_cargo {
+    local cmd=$1
+    shift
+    $cargo --frozen $cmd --features="$features" "$@"
+}
 
 buildFlags=()
 if [ "x$buildProfile" = "xrelease" ]
@@ -18,22 +24,29 @@ then
     buildFlags+=(--release)
 fi
 
-for dep in $dependencies $devDependencies $buildDependencies
+mkdir nix-support
+touch nix-support/dependencies
+touch nix-support/devDependencies
+touch nix-support/buildDependencies
+
+# TODO use this in wrapper.sh instead of traversing the dependency
+# tree in Nix
+for ty in dependencies devDependencies buildDependencies
 do
-    source $dep/nix-support/metainfo
+    for dep in ${!ty}
+    do
+        source $dep/nix-support/depinfo
+        echo $dep >> nix-support/$ty
+        cat $dep/nix-support/$ty >> nix-support/$ty
+        source $dep/nix-support/depinfo
+    done
+    sort nix-support/$ty | uniq > nix-support/$ty.uniq
+    mv nix-support/$ty{.uniq,}
 done
 
-if [ "$doCheck" ]
-then
-    $cargo test
-fi
+[ "$doCheck" ] && run_cargo test || :
+run_cargo build "${buildFlags[@]}"
+[ "$doDoc" ] && run_cargo doc || :
 
-$cargo build "${buildFlags[@]}"
-mkdir -p $out/nix-support
-$extractDeps target/"$buildProfile"/build/*/output > metainfo
-substituteInPlace metainfo --subst-var-by links $(upper $links)
-
-if [ "$doDoc" ]
-then
-    $cargo doc
-fi
+$extractDeps target/"$buildProfile"/build/*/output > nix-support/depinfo
+substituteInPlace nix-support/depinfo --subst-var-by links $(upper $links)

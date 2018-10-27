@@ -5,12 +5,13 @@
 , dependencies ? []
 , devDependencies ? []
 , buildDependencies ? []
+, features ? []
 , doCheck ? false
 , buildInputs ? []
 , buildProfile ? "release"
 , ...} @ args:
 let
-  args' = builtins.removeAttrs args [];
+  args' = builtins.removeAttrs args ["features"];
   makeExecutable = f: runCommand "${f.name}-exec" { }
     ''
       cp ${f} $out
@@ -19,21 +20,21 @@ let
   und = builtins.replaceStrings ["-"] ["_"];
   wrapper = cmd: makeExecutable (substituteAll {
     src = ./wrapper.sh;
-    env = ./env.sh;
     inherit bash cmd;
   });
   transDeps = k: builtins.concatMap (x: x.${k} ++ transDeps k x.${k});
-  mkExterns = map (x: "${und x.name}=${x}/lib/lib${und x.name}.rlib");
-  mkTrans = map (x: "-L dependency=${x}/lib");
+  mkExterns = xs: builtins.concatStringsSep " " (map (x: if x == null then "" else
+    "--extern ${und x.name}=${x}/lib/lib${und x.name}.rlib") xs);
+  mkTrans = xs: builtins.concatStringsSep " " (map (x: "-L dependency=${x}/lib") xs);
 in
 stdenv.mkDerivation ({
   inherit buildProfile dependencies devDependencies buildDependencies;
-  externs = mkExterns dependencies;
-  devExterns = mkExterns devDependencies;
-  buildExterns = mkExterns buildDependencies;
-  transDependencies = transDeps "dependencies" dependencies;
-  transDevDependencies = transDeps "devDependencies" devDependencies;
-  transBuildDependencies = transDeps "buildDependencies" buildDependencies;
+  dependenciesFlags = mkExterns dependencies
+    + " " + mkTrans (transDeps "dependencies" dependencies);
+  devDependenciesFlags = mkExterns devDependencies
+    + " " + mkTrans (transDeps "devDependencies" devDependencies);
+  buildDependenciesFlags = mkExterns buildDependencies
+    + " " + mkTrans (transDeps "buildDependencies" buildDependencies);
   cargo = "${cargo}/bin/cargo";
   jq = "${jq}/bin/jq";
   remarshal = "${remarshal}/bin/remarshal";
@@ -45,6 +46,7 @@ stdenv.mkDerivation ({
     crateName = name;
     crateVersion = version;
   };
+  features = builtins.concatStringsSep " " features;
   buildPhase = ". ${./build.sh}";
   installPhase = ". ${./install.sh}";
   RUSTC = wrapper "${rust}/bin/rustc";

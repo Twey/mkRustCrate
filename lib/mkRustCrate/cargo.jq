@@ -1,19 +1,23 @@
-def walk(f):
-  . as $in
-  | if type == "object" then
-      reduce keys[] as $key
-        ( {}; . + { ($key):  ($in[$key] | walk(f)) } ) | f
-  elif type == "array" then map( walk(f) ) | f
-  else f
-  end;
+def all_dependencies:
+  .["dependencies", "dev-dependencies", "build-dependencies"];
 
-def remove_forbidden_keys:
-  del(.[
-    "dependencies",
-    "dev-dependencies",
-    "build-dependencies",
-    "features"
-  ]);
+def optional_dependencies:
+  [ all_dependencies | select(.) ]
+  | add // {}
+  | to_entries
+  | map(select(.value.optional) | .value = [])
+  | from_entries;
 
-remove_forbidden_keys
-  | .target |= ((.//{}) | map_values(remove_forbidden_keys))
+def augment_features:
+  .features = (.features + optional_dependencies);
+
+def remove_dependencies:
+  del(all_dependencies)
+  | .target |= ((.//{}) | map_values(del(all_dependencies)));
+
+def remove_feature_dependencies:
+  .features |= map_values([]);
+
+augment_features
+  | remove_feature_dependencies
+  | remove_dependencies
