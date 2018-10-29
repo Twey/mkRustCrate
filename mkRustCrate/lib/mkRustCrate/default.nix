@@ -5,7 +5,7 @@
 , dependencies ? []
 , devDependencies ? []
 , buildDependencies ? []
-, features ? []
+, features ? ["default"]
 , doCheck ? false
 , buildInputs ? []
 , buildProfile ? "release"
@@ -26,15 +26,13 @@ let
   mkExterns = xs: builtins.concatStringsSep " " (map (x: if x == null then "" else
     "--extern ${und x.name}=${x}/lib/lib${und x.name}.rlib") xs);
   mkTrans = xs: builtins.concatStringsSep " " (map (x: "-L dependency=${x}/lib") xs);
+  depFlags = xs: k: let v = xs.${k}; in mkExterns v + " " + mkTrans (transDeps k v)
 in
 stdenv.mkDerivation ({
   inherit buildProfile dependencies devDependencies buildDependencies;
-  dependenciesFlags = mkExterns dependencies
-    + " " + mkTrans (transDeps "dependencies" dependencies);
-  devDependenciesFlags = mkExterns devDependencies
-    + " " + mkTrans (transDeps "devDependencies" devDependencies);
-  buildDependenciesFlags = mkExterns buildDependencies
-    + " " + mkTrans (transDeps "buildDependencies" buildDependencies);
+  dependenciesFlags = depFlags "dependencies" args';
+  devDependenciesFlags = depFlags "devDependencies" args';
+  buildDependenciesFlags = depFlags "buildDependencies" args';
   cargo = "${cargo}/bin/cargo";
   jq = "${jq}/bin/jq";
   remarshal = "${remarshal}/bin/remarshal";
