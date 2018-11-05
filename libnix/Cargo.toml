@@ -1,0 +1,9 @@
+[package]
+name = "libnix"
+version = "0.1.0"
+authors = ["James ‘Twey’ Kay <twey@twey.co.uk>"]
+edition = "2018"
+
+[dependencies]
+combine = "3"
+derive_more = "0.13"
