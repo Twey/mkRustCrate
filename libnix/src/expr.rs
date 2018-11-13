@@ -44,8 +44,10 @@ pub type AttrPath = NonEmptyVec<AttrName>;
 
 #[derive(Clone, Debug)]
 pub enum Binding {
-    Inherit(Vec<Id>),
-    InheritFrom(Box<Expr>, Vec<Id>),
+    Inherit {
+        source: Option<Box<Expr>>,
+        attrs: Vec<Id>, // TODO this is oversimplified
+    },
     Attr(AttrPath),
 }
 

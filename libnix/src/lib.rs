@@ -3,7 +3,6 @@
 extern crate derive_more;
 extern crate combine;
 
-pub mod token;
 pub mod expr;
 pub mod parse;
 
