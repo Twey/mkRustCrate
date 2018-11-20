@@ -1,9 +1,13 @@
-{ callPackage, pkgs, rustChannels }:
+{ callPackage, pkgs, rustChannelOf }:
 let
-  cargo = rustChannels.nightly.cargo;
-  rust = rustChannels.nightly.rust;
-  mkRustCrate = callPackage ../lib/mkRustCrate { inherit cargo rust; };
-  fetchFromCratesIo = callPackage ../lib/fetchFromCratesIo { };
+  rustChannel = rustChannelOf {
+    date = "2018-11-10";
+    channel = "nightly";
+  };
+  cargo = rustChannel.cargo;
+  rust = rustChannel.rust;
+  mkRustCrate = callPackage ../../mkRustCrate/lib/mkRustCrate { inherit cargo rust; };
+  fetchFromCratesIo = callPackage ../../mkRustCrate/lib/fetchFromCratesIo { };
 in
 rec {
   openssl-sys = mkRustCrate rec {

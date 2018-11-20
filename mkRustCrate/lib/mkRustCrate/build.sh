@@ -1,6 +1,7 @@
 shopt -s nullglob
 
 source $utils
+source $depinfo
 
 mkdir cargo_home
 export CARGO_HOME=$(pwd)/cargo_home
@@ -10,12 +11,12 @@ $remarshal -if toml -of json -o Cargo.json Cargo.toml
 $jq -f $cargoFilter < Cargo.json \
     | $remarshal -if json -of toml -o Cargo.toml
 
-links=$($jq -r .package.links < Cargo.json)
+export CARGO_LINKS=$($jq -r .package.links < Cargo.json)
 
 function run_cargo {
     local cmd=$1
     shift
-    $cargo --frozen $cmd --features="$features" "$@"
+    $cargo --frozen $cmd -vv --features="$features" "$@"
 }
 
 buildFlags=()
@@ -24,29 +25,50 @@ then
     buildFlags+=(--release)
 fi
 
-mkdir nix-support
-touch nix-support/dependencies
-touch nix-support/devDependencies
-touch nix-support/buildDependencies
-
-# TODO use this in wrapper.sh instead of traversing the dependency
-# tree in Nix
-for ty in dependencies devDependencies buildDependencies
-do
-    for dep in ${!ty}
+function add_deps {
+    local dep_type=$1; shift
+    local dep_dir=$1; shift
+    local dep_flags=$1; shift
+    for dep in ${!dep_type}
     do
-        source $dep/nix-support/depinfo
-        echo $dep >> nix-support/$ty
-        cat $dep/nix-support/$ty >> nix-support/$ty
-        source $dep/nix-support/depinfo
+        printf -v$dep_flags "%s --extern %s=%s" \
+               "${!dep_flags}" \
+               "$(crate_name $dep)" \
+               "$dep/lib/lib$(crate_name $dep).rlib"
+        stat $dep/lib/deps/* &>/dev/null \
+            && cp -dn $dep/lib/deps/* deps \
+            || :
+        for depinfo in $dep/lib/*.depinfo
+        do
+            source $depinfo
+        done
+        for lib in $dep/lib/*.rlib
+        do
+            local dest=$(basename $lib .rlib)-$(crate_hash $dep).rlib
+            copy_or_link "$lib" "$dep_dir/$dest"
+        done
     done
-    sort nix-support/$ty | uniq > nix-support/$ty.uniq
-    mv nix-support/$ty{.uniq,}
-done
+}
+
+mkdir deps
+add_deps dependencies deps depFlags
+RUSTFLAGS="-Ldependency=deps $NIX_RUST_LINK_FLAGS"
+
+link_flags="$NIX_RUST_LINK_FLAGS"
+NIX_RUST_LINK_FLAGS=
+mkdir build_deps
+add_deps buildDependencies build_deps buildDepFlags
+BUILD_RUSTFLAGS="-Ldependency=build_deps $NIX_RUST_LINK_FLAGS"
+NIX_RUST_LINK_FLAGS="$link_flags"
+
+echo "RUSTFLAGS=$RUSTFLAGS"
+
+export RUSTFLAGS
+export BUILD_RUSTFLAGS
+export depFlags
+export buildDepFlags
 
 [ "$doCheck" ] && run_cargo test || :
-run_cargo build "${buildFlags[@]}"
+run_cargo build "${buildFlags[@]}" || exit $?
 [ "$doDoc" ] && run_cargo doc || :
 
-$extractDeps target/"$buildProfile"/build/*/output > nix-support/depinfo
-substituteInPlace nix-support/depinfo --subst-var-by links $(upper $links)

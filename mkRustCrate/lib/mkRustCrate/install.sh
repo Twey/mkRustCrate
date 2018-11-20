@@ -1,28 +1,52 @@
 shopt -s nullglob
 
-find -\( -name '.lock' -or -name '*.d' -\) -delete
+source $utils
+source $depinfo
 
 mkdir $out
-cp -r nix-support $out/
 
 cd "target/$buildProfile"
 
-rm -r */
+hash=$(crate_hash $out)
+needs_deps=
 
-if stat -t *.rlib *.so *.a &>/dev/null
-then
-    mkdir -p $out/lib
-    mv *.rlib *.so *.a $out/lib/
-else
-    echo '' > $out/nix-support/dependencies
-    echo '' > $out/nix-support/devDependencies
-    echo '' > $out/nix-support/buildDependencies
-fi
+for f in *
+do
+    ext=$(filext $f)
+    if [ -x "$f" ] && ! [ -d "$f" ]
+    then
+        mkdir -p $out/bin
+        cp $f $out/bin
+        continue
+    fi
 
-if stat -t * &>/dev/null
+    case $(filext $f) in
+        rlib)
+            mkdir -p $out/lib
+            cp $f $out/lib
+            dest=$out/lib/$(basename $f .rlib).depinfo
+            printf 'NIX_RUST_LINK_FLAGS=%q\n' "$NIX_RUST_LINK_FLAGS" > $dest
+            for depinfo in build/*/output
+            do
+                parse_depinfo $depinfo >> $dest
+            done
+            needs_deps=1
+            ;;
+        a)
+            needs_deps=1
+            ;&
+        so)
+            mkdir -p $out/lib
+            cp $f $out/lib
+            ;;
+        *)
+            continue
+    esac
+done
+
+if [ "$needs_deps" ]
 then
-    mkdir -p $out/bin
-    mv * $out/bin/
+    cp -dr ../../deps $out/lib/
 fi
 
 if [ -d ../doc ]
@@ -30,4 +54,3 @@ then
     mkdir -p $out/share/doc
     cp -r ../doc $out/share/doc/html
 fi
-

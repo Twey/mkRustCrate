@@ -1,5 +1,10 @@
 with import <nixpkgs> { };
-stdenv.mkDerivation {
+let
+  rustChannel = rustChannelOf {
+    date = "2018-11-10";
+    channel = "nightly";
+  };
+in stdenv.mkDerivation {
   name = "aoeeuu";
-  buildInputs = [rustChannels.nightly.rust openssl pkgconfig];
+  buildInputs = [rustChannel.rust openssl pkgconfig];
 }
