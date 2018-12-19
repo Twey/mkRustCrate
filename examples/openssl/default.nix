@@ -19,9 +19,9 @@ rec {
       inherit name version;
       sha256 = "1lraqg3xz4jxrc99na17kn6srfhsgnj1yjk29mgsh803w40s2056";
     };
-    buildInputs = [pkgs.openssl pkgs.pkgconfig];
-    dependencies = [cc libc pkg-config]; # vcpkg openssl-src
-    # devDependencies = [data-encoding hex tempdir];
+    buildInputs = [ pkgs.openssl pkgs.pkgconfig ];
+    dependencies = [ libc ];
+    buildDependencies = [ cc pkg-config ];
   };
 
   gcc = mkRustCrate rec {
@@ -43,7 +43,7 @@ rec {
       inherit name version;
       sha256 = "07wgsq4mzzxpm99m9hacg034iikvwlsgycvk3qlbg4a4hcaknw1f";
     };
-    dependencies = [gcc];
+    dependencies = [ gcc ];
   };
 
   openssl = mkRustCrate rec {
@@ -53,7 +53,7 @@ rec {
       inherit name version;
       sha256 = "0fj5g66ibkyb6vfdfjgaypfn45vpj2cdv7d7qpq653sv57glcqri";
     };
-    dependencies = [bitflags cfg-if foreign-types lazy_static libc openssl-sys];
+    dependencies = [ bitflags cfg-if foreign-types lazy_static libc openssl-sys ];
     # devDependencies = [data-encoding hex tempdir];
   };
 

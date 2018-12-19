@@ -16,7 +16,7 @@ do
         # then fail
         : # args[$i]=extra-filename=-$(crate_hash $out)
     elif [ "x${args[$i]}" = "x--crate-name" ] \
-             && [ "x${args[$i+1]}" = "xbuild_script_build" ]
+             && [ "x${args[$i+1]::13}" = "xbuild_script_" ]
     then
         isBuildScript=1
     fi
