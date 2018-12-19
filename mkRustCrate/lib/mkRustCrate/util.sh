@@ -38,5 +38,34 @@ function copy_or_link {
     local dest="$1"; shift
     [ -L "$src" ] \
         && cp -dn "$src" "$dest" \
-            || ln -s "$src" "$dest"
+        || ln -s "$src" "$dest"
+}
+
+function parse_depinfo {
+    echo NIX_RUST_LINK_FLAGS=\"\${NIX_RUST_LINK_FLAGS-}\"
+    cat "$@" | while read line
+    do
+        [[ "x$line" =~ xcargo:([^=]+)=(.*) ]] || continue
+        local key="${BASH_REMATCH[1]}"
+        local val="${BASH_REMATCH[2]}"
+        
+        case $key in
+            rustc-link-lib) ;&
+            rustc-flags) ;&
+            rustc-cfg) ;&
+            rustc-env) ;&
+            rerun-if-changed) ;&
+            rerun-if-env-changed) ;&
+            warning)
+            ;;
+            rustc-link-search)
+                printf 'NIX_RUST_LINK_FLAGS+=" "-L%q\n' "$val"
+                ;;
+            *)
+                printf 'export DEP_%s_%s=%q\n' \
+                       "$(upper $CARGO_LINKS)" \
+                       "$(upper $key)" \
+                       "$val"
+        esac
+    done
 }

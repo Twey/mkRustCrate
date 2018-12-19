@@ -1,7 +1,6 @@
 shopt -s nullglob
 
 source $utils
-source $depinfo
 
 mkdir cargo_home
 export CARGO_HOME=$(pwd)/cargo_home

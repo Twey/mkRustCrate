@@ -29,7 +29,6 @@ stdenv.mkDerivation ({
   jq = "${jq}/bin/jq";
   remarshal = "${remarshal}/bin/remarshal";
   cargoFilter = ./cargo.jq;
-  depinfo = ./depinfo.sh;
   utils = ./util.sh;
   lockFile = substituteAll {
     src = ./Cargo.lock;

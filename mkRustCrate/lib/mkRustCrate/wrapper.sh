@@ -2,7 +2,7 @@
 
 source $utils
 
-buildScript=
+isBuildScript=
 args=("$@")
 
 for i in ${!args[@]}
@@ -18,15 +18,14 @@ do
     elif [ "x${args[$i]}" = "x--crate-name" ] \
              && [ "x${args[$i+1]}" = "xbuild_script_build" ]
     then
-        buildScript=1
+        isBuildScript=1
     fi
 done
 
-if [ "$buildScript" ]
+if [ "$isBuildScript" ]
 then
     depFlags+=" $buildDepFlags $BUILD_RUSTFLAGS"
 fi
 
 >&2 echo @cmd@ $depFlags "${args[@]}"
-
 env @cmd@ $depFlags "${args[@]}"

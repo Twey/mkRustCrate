@@ -1,7 +1,6 @@
 shopt -s nullglob
 
 source $utils
-source $depinfo
 
 mkdir $out
 
