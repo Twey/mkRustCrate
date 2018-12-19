@@ -6,7 +6,9 @@ let
   };
   cargo = rustChannel.cargo;
   rust = rustChannel.rust;
-  mkRustCrate = callPackage ../../mkRustCrate/lib/mkRustCrate { inherit cargo rust; };
+  mkRustCrate = callPackage ../../mkRustCrate/lib/mkRustCrate {
+    inherit (rustChannel) cargo rust;
+  };
   fetchFromCratesIo = callPackage ../../mkRustCrate/lib/fetchFromCratesIo { };
 in
 rec {

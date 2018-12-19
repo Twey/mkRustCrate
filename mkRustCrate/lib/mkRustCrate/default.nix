@@ -22,11 +22,6 @@ let
     src = ./wrapper.sh;
     inherit bash cmd;
   });
-  transDeps = k: builtins.concatMap (x: x.${k} ++ transDeps k x.${k});
-  mkExterns = xs: builtins.concatStringsSep " " (map (x: if x == null then "" else
-    "--extern ${und x.name}=${x}/lib/lib${und x.name}.rlib") xs);
-  mkTrans = xs: builtins.concatStringsSep " " (map (x: "-L dependency=${x}/lib") xs);
-  depFlags = k: v: mkExterns v + " " + mkTrans (transDeps k v);
 in
 stdenv.mkDerivation ({
   inherit buildProfile dependencies devDependencies buildDependencies;

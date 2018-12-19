@@ -4,9 +4,7 @@ def all_dependencies:
 def optional_dependencies:
   [ all_dependencies | select(.) ]
   | add // {}
-  | to_entries
-  | map(select(.value.optional) | .value = [])
-  | from_entries;
+  | map_values(select(type == "object" and .optional));
 
 def augment_features:
   .features = (.features + optional_dependencies);

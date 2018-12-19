@@ -32,9 +32,7 @@ do
             done
             needs_deps=1
             ;;
-        a)
-            needs_deps=1
-            ;&
+        a) ;&
         so)
             mkdir -p $out/lib
             cp $f $out/lib

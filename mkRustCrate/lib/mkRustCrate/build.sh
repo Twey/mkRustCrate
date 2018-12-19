@@ -61,8 +61,6 @@ add_deps buildDependencies build_deps buildDepFlags
 BUILD_RUSTFLAGS="-Ldependency=build_deps $NIX_RUST_LINK_FLAGS"
 NIX_RUST_LINK_FLAGS="$link_flags"
 
-echo "RUSTFLAGS=$RUSTFLAGS"
-
 export RUSTFLAGS
 export BUILD_RUSTFLAGS
 export depFlags
@@ -71,4 +69,3 @@ export buildDepFlags
 [ "$doCheck" ] && run_cargo test || :
 run_cargo build "${buildFlags[@]}" || exit $?
 [ "$doDoc" ] && run_cargo doc || :
-
