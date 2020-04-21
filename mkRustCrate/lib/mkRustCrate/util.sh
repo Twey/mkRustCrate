@@ -38,7 +38,7 @@ function copy_or_link {
     local dest="$1"; shift
     [ -L "$src" ] \
         && cp -dn "$src" "$dest" \
-        || ln -s "$src" "$dest"
+        || ln -s "$src" "$dest" &> /dev/null || true
 }
 
 function parse_depinfo {
@@ -48,7 +48,7 @@ function parse_depinfo {
         [[ "x$line" =~ xcargo:([^=]+)=(.*) ]] || continue
         local key="${BASH_REMATCH[1]}"
         local val="${BASH_REMATCH[2]}"
-        
+
         case $key in
             rustc-link-lib) ;&
             rustc-flags) ;&
