@@ -30,10 +30,6 @@ function add_deps {
     local dep_flags=$1; shift
     for dep in ${!dep_type}
     do
-        printf -v$dep_flags "%s --extern %s=%s" \
-               "${!dep_flags}" \
-               "$(crate_name $dep)" \
-               "$dep/lib/lib$(crate_name $dep).rlib"
         stat $dep/lib/deps/* &>/dev/null \
             && cp -dn $dep/lib/deps/* deps \
             || :
@@ -41,9 +37,14 @@ function add_deps {
         do
             source $depinfo
         done
-        for lib in $dep/lib/*.rlib
+        for lib in $dep/lib/*.{rlib,so}
         do
-            local dest=$(basename $lib .rlib)-$(crate_hash $dep).rlib
+	    local ext=$(filext $lib)
+            printf -v$dep_flags "%s --extern %s=%s" \
+                "${!dep_flags}" \
+                "$(crate_name $dep)" \
+                "$dep/lib/lib$(crate_name $dep).$ext"
+            local dest=$(basename $lib .$ext)-$(crate_hash $dep).$ext
             copy_or_link "$lib" "$dep_dir/$dest"
         done
     done

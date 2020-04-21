@@ -14,6 +14,16 @@ in
     in
     rec {
 
+      serde_derive = mkRustCrate rec {
+        name = "serde_derive";
+        version = "1.0.106";
+        src = fetchFromCratesIo {
+          inherit name version;
+          sha256 = "03wq260g5prkgxgfq4yhbmznqm2rr3qmhqah6mh6ddvpmq6axz3p";
+        };
+        dependencies = [ proc-macro2 quote syn ];
+      };
+
       quote = mkRustCrate rec {
         name = "quote";
         version = "1.0.3";

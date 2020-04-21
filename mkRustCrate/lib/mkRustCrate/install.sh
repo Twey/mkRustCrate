@@ -12,12 +12,6 @@ needs_deps=
 for f in *
 do
     ext=$(filext $f)
-    if [ -x "$f" ] && ! [ -d "$f" ]
-    then
-        mkdir -p $out/bin
-        cp $f $out/bin
-        continue
-    fi
 
     case $(filext $f) in
         rlib)
@@ -37,7 +31,13 @@ do
             cp $f $out/lib
             ;;
         *)
+    if [ -x "$f" ] && ! [ -d "$f" ]
+    then
+        mkdir -p $out/bin
+        cp $f $out/bin
+    fi
             continue
+	    ;;
     esac
 done
 
