@@ -1,4 +1,7 @@
-{ callPackage, pkgs, rustChannelOf }:
+let
+  pkgs = import <nixpkgs> { };
+in
+  pkgs.callPackage ({ callPackage, pkgs, rustChannelOf }:
 let
   rustChannel = rustChannelOf {
     date = "2020-03-31";
@@ -133,4 +136,4 @@ rec {
       sha256 = "1hhgqh551gmws22z9rxbnsvlppwxvlj0nszj7n1x56pqa3j3swy7";
     };
   };
-}
+}) {}
