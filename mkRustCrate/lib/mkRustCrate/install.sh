@@ -31,13 +31,13 @@ do
             cp $f $out/lib
             ;;
         *)
-    if [ -x "$f" ] && ! [ -d "$f" ]
-    then
-        mkdir -p $out/bin
-        cp $f $out/bin
-    fi
+            if [ -x "$f" ] && ! [ -d "$f" ]
+            then
+                mkdir -p $out/bin
+                cp $f $out/bin
+            fi
             continue
-	    ;;
+            ;;
     esac
 done
 
