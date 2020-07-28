@@ -1,11 +1,12 @@
-{ callPackage, pkgs, rustChannelOf }:
+let
+  pkgs = import <nixpkgs> { };
+in
+  pkgs.callPackage ({ callPackage, pkgs, rustChannelOf }:
 let
   rustChannel = rustChannelOf {
-    date = "2018-11-10";
+    date = "2020-03-31";
     channel = "nightly";
   };
-  cargo = rustChannel.cargo;
-  rust = rustChannel.rust;
   mkRustCrate = callPackage ../../mkRustCrate/lib/mkRustCrate {
     inherit (rustChannel) cargo rust;
   };
@@ -14,44 +15,22 @@ in
 rec {
   openssl-sys = mkRustCrate rec {
     name = "openssl-sys";
-    version = "0.9.39";
+    version = "0.9.55";
     src = fetchFromCratesIo {
       inherit name version;
-      sha256 = "1lraqg3xz4jxrc99na17kn6srfhsgnj1yjk29mgsh803w40s2056";
+      sha256 = "1c05nicx77cfsi4g6vx0sq8blk7075p4wh07hzzy5l6awp5vw0m4";
     };
     buildInputs = [ pkgs.openssl pkgs.pkgconfig ];
     dependencies = [ libc ];
-    buildDependencies = [ cc pkg-config ];
-  };
-
-  gcc = mkRustCrate rec {
-    name = "gcc";
-    version = "0.3.55";
-    src = fetchFromCratesIo {
-      inherit name version;
-      sha256 = "18qxv3hjdhp7pfcvbm2hvyicpgmk7xw8aii1l7fla8cxxbcrg2nz";
-    };
-    dependencies = [];
-    # optional: rayon
-    # devDependencies = [tempdir];
-  };
-  
-  openssl-src = mkRustCrate rec {
-    name = "openssl-src";
-    version = "110.0.0";
-    src = fetchFromCratesIo {
-      inherit name version;
-      sha256 = "07wgsq4mzzxpm99m9hacg034iikvwlsgycvk3qlbg4a4hcaknw1f";
-    };
-    dependencies = [ gcc ];
+    buildDependencies = [ cc pkg-config autocfg ];
   };
 
   openssl = mkRustCrate rec {
     name = "openssl";
-    version = "0.10.15";
+    version = "0.10.29";
     src = fetchFromCratesIo {
       inherit name version;
-      sha256 = "0fj5g66ibkyb6vfdfjgaypfn45vpj2cdv7d7qpq653sv57glcqri";
+      sha256 = "02vjmz0pm29s6s869q1153pskjdkyd1qqwj8j03linrm3j7609b3";
     };
     dependencies = [ bitflags cfg-if foreign-types lazy_static libc openssl-sys ];
     # devDependencies = [data-encoding hex tempdir];
@@ -68,19 +47,19 @@ rec {
 
   cfg-if = mkRustCrate rec {
     name = "cfg-if";
-    version = "0.1.6";
+    version = "0.1.10";
     src = fetchFromCratesIo {
       inherit name version;
-      sha256 = "11qrix06wagkplyk908i3423ps9m9np6c4vbcq81s9fyl244xv3n";
+      sha256 = "0x52qzpbyl2f2jqs7kkqzgfki2cpq99gpfjjigdp8pwwfqk01007";
     };
   };
 
   foreign-types = mkRustCrate rec {
     name = "foreign-types";
-    version = "0.3.2";
+    version = "0.3.1";
     src = fetchFromCratesIo {
       inherit name version;
-      sha256 = "105n8sp2djb1s5lzrw04p7ss3dchr5qa3canmynx396nh3vwm2p8";
+      sha256 = "0rkjl4174b83d1lcdd7rgkb1shhsginjqajzg8wlkqcixhfd4lkn";
     };
     dependencies = [ foreign-types-shared ];
   };
@@ -124,10 +103,10 @@ rec {
 
   libc = mkRustCrate rec {
     name = "libc";
-    version = "0.2.43";
+    version = "0.2.68";
     src = fetchFromCratesIo {
       inherit name version;
-      sha256 = "0pshydmsq71kl9276zc2928ld50sp524ixcqkcqsgq410dx6c50b";
+      sha256 = "1ypl20mr7rr5c08z9ygl8zf1z63i7mh63dd62jshcdifnwhm37ph";
     };
   };
 
@@ -140,21 +119,21 @@ rec {
     };
   };
 
-  vcpkg = mkRustCrate rec {
-    name = "vcpkg";
-    version = "0.2.6";
+  cc = mkRustCrate rec {
+    name = "cc";
+    version = "1.0.50";
     src = fetchFromCratesIo {
       inherit name version;
-      sha256 = "1ig6jqpzzl1z9vk4qywgpfr4hfbd8ny8frqsgm3r449wkc4n1i5x";
+      sha256 = "1di84m338b9c42vfq86g5lyq5s03i0zfvvf59dvb6mr37z063h1d";
     };
   };
 
-  cc = mkRustCrate rec {
-    name = "cc";
-    version = "1.0.25";
+  autocfg = mkRustCrate rec {
+    name = "autocfg";
+    version = "1.0.0";
     src = fetchFromCratesIo {
       inherit name version;
-      sha256 = "0pd8fhjlpr5qan984frkf1c8nxrqp6827wmmfzhm2840229z2hq0";
+      sha256 = "1hhgqh551gmws22z9rxbnsvlppwxvlj0nszj7n1x56pqa3j3swy7";
     };
   };
-}
+}) {}
