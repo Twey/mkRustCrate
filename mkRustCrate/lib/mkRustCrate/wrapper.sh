@@ -28,4 +28,4 @@ then
 fi
 
 >&2 echo @cmd@ $depFlags "${args[@]}"
-env @cmd@ $depFlags "${args[@]}"
+env @cmd@ --cap-lints warn $depFlags "${args[@]}"
